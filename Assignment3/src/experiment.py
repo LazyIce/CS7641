@@ -147,6 +147,7 @@ plt.show()
 
 #################################################
 # EM
+
 range_n_clusters = list(range(2, 11))
 lh1 = []
 lh2 = []
@@ -202,6 +203,7 @@ plt.show()
 
 #################################################
 # PCA
+
 pca = PCA(n_components=5)
 pca.fit(X1)
 bins = np.linspace(-.001, .001, 100)
@@ -448,27 +450,21 @@ plt.show()
 
 #################################################
 # cluster with DR
-def dim_reduct(name):
+def dim_reduct(name, X_train, y_train, X_test, y_test, title, n, cluster):
     if name == 'em':
-        model = GaussianMixture(n_components=3, covariance_type='spherical')
-    elif name == 'kmeans':
-        model = KMeans(n_clusters=3, random_state=0)
-        
+        model = KMeans(n_clusters=cluster, random_state=RANDOM_STATE)
+    if name == 'kmeans':
+        model = GaussianMixture(n_components=cluster, random_state=RANDOM_STATE)
     
-    comp = [2,4,6,8,10,12,14]    
+    comp = range(2, n, 1)
     
     methods = [PCA, FastICA, NMF, GaussianRandomProjection]
     names = ['PCA', 'ICA', 'NMF', 'RP']
     res = []
-    res_test = []
     
-    for j in comp:
-        r = []
+    for meth_c, dr in enumerate(methods):
         r_test = []
-        print(j)
-        for meth_c, dr in enumerate(methods):
-            print(names[meth_c])
-            x = []
+        for j in comp:
             x_test = []
             
             if names[meth_c] == 'RP':
@@ -478,53 +474,41 @@ def dim_reduct(name):
             
             for it in range(its):
                 dr_i = dr(n_components=j)
-                X_new = dr_i.fit_transform(X1_train)
-                X_new_test = dr_i.fit_transform(X1_test)
+                X_new = dr_i.fit_transform(X_train)
+                X_new_test = dr_i.fit_transform(X_test)
             
                 model.fit(X_new)
                     
-                acc = accuracy_score(y1_train, model.predict(X_new))
-                acc_test = accuracy_score(y1_test, model.predict(X_new_test))
+                acc_test = accuracy_score(y_test, model.predict(X_new_test))
                 
-                x.append(acc)
                 x_test.append(acc_test)
                 
                 del dr_i
                 del X_new
                 del X_new_test
 
-            r.append(np.mean(x))
             r_test.append(np.mean(x_test))
-        res.append(r)
-        res_test.append(r_test)
+        res.append(r_test)
 
                
     fig = plt.figure()
-    COLORS = 'bygr'
-    x = 1
     
-    bar_offsets = (np.arange(len(comp)) * (len(names) + 1) + .5)
-
-    for c, j in enumerate(comp):
-        for count, i in enumerate(methods):
-            if c == 0:
-                plt.bar(x, res[c][count], label=names[count], color=COLORS[count], width=.5)
-            else:
-                plt.bar(x, res[c][count], color=COLORS[count], width=.5)
-            x += .75
-        x += 2
-    
-    plt.title("Comparing dimensionality reduction techniques: "+name)
+    plt.plot(comp, res[0], 'b*-', label='PCA')
+    plt.plot(comp, res[1], 'g^-', label='ICA')
+    plt.plot(comp, res[2], 'rs-', label='NMF')
+    plt.plot(comp, res[3], 'y+-', label='RP')
+    plt.title('Comparing dimensionality reduction with ' + name + ' for ' + title)
     plt.xlabel('N Components')
     plt.ylabel('Classification accuracy')
-
-    plt.xticks(bar_offsets + len(names) / 2, comp)
     plt.legend(loc='best')
-    fig.savefig('./../img/dim_rect_' + name + '.png')
+    plt.grid(True)
+    fig.savefig('./../img/dim_rect_' + name + '_' + str(cluster) + '.png')
     plt.show()
 
-dim_reduct('kmeans')
-dim_reduct('em')
+dim_reduct('em', X1_train, y1_train, X1_test, y1_test, 'Sky survey data', 15, 3)
+dim_reduct('em', X2_train, y2_train, X2_test, y2_test, 'Wine Quality data', 11, 7)
+dim_reduct('kmeans', X1_train, y1_train, X1_test, y1_test, 'Sky survey data', 15, 3)
+dim_reduct('kmeans', X2_train, y2_train, X2_test, y2_test, 'Wine Quality data', 11, 7)
 
 #################################################
 # NN with DR
@@ -573,7 +557,7 @@ def nn_dim_reduct():
 
                
     fig = plt.figure()
-    COLORS = 'grcm'
+    COLORS = 'bygr'
 
     for count, i in enumerate(methods):
         plt.plot(comp, res[count], label=names[count]+' training', color=COLORS[count])
@@ -600,7 +584,7 @@ def nn_dim_reduct_cluster(name, k=3):
     else:
         raise Exception('enter kmeans or em as name')
     
-    model = MLPClassifier()      
+    model = MLPClassifier(hidden_layer_sizes=(5,5))      
     
     comp = [2,4,6,8,10,12,14]    
     
@@ -654,7 +638,7 @@ def nn_dim_reduct_cluster(name, k=3):
 
                
     fig = plt.figure()
-    COLORS = 'grcm'
+    COLORS = 'bygr'
 
     for count, i in enumerate(methods):
         plt.plot(comp, res[count], label=names[count]+' training', color=COLORS[count])
@@ -662,18 +646,19 @@ def nn_dim_reduct_cluster(name, k=3):
     if k == 3:
         plt.title("NN with custers: Comparing dimensionality reduction techniques")
     else:
-        plt.title("NN with custers: Comparing DR techniques, k=" + k)
+        plt.title("NN with custers: Comparing DR techniques, k=" + str(k))
     plt.xlabel('N Components')
     plt.ylabel('Classification accuracy')
 
     plt.legend(loc='best')
     if k == 3:
-        fig.savefig('./../img/dim_rect_nn_cluster.png')
+        fig.savefig('./../img/dim_rect_nn_cluster_' + name + '.png')
     else:
-        fig.savefig('./../img/dim_rect_nn_cluster_' + k + '.png')
+        fig.savefig('./../img/dim_rect_nn_cluster_' + str(k) + '.png')
     plt.show()
 
 nn_dim_reduct_cluster('kmeans')
+nn_dim_reduct_cluster('em')
 
 nn_dim_reduct_cluster('kmeans', 5)
 nn_dim_reduct_cluster('kmeans', 10)
