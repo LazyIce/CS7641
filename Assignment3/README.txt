@@ -7,6 +7,6 @@ My package dependencies are:
   - sklearn
 
 The data directory contains my two datasets.
-The img directory is the output direct for the plotting result graphs.
+The img directory is the output directory for the plotting result graphs.
 
-To run my code, under src directory, in terminal, run "python3 experiment1.py" and "python3 experiment2.py".
+To run my code, under src directory, in terminal, run "python3 experiment.py".
