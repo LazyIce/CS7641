@@ -1,4 +1,4 @@
-The github repository is https://github.com/LazyIce/CS7641/Assignment3
+The github repository is https://github.com/LazyIce/CS7641
 My python version is 3.5
 My package dependencies are:
   - numpy

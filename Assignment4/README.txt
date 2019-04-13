@@ -1,4 +1,4 @@
-The github repository is https://github.com/LazyIce/CS7641/Assignment4
+The github repository is https://github.com/LazyIce/CS7641
 
 For this assignment, I used the Reinforcement Learning - Simulator developed by developed by Rohit Kelkar and Vivek Mehta at Robotics Institute, Carnegie Mellon University.
 
